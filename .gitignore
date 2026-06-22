@@ -1,0 +1,9 @@
+node_modules
+README.md
+.venv/
+.vscode/
+.env
+控制點成果清單/
+1142DBMS.session.sql
+.other doc
+config.js

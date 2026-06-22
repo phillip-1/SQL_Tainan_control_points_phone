@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>調查點位地圖管理系統</title>
+	
+	<!-- Supabase：資料庫連線 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- config.js：請放 SUPABASE_URL 與 SUPABASE_ANON_KEY，且要和本檔放同一層 -->
+	<script src="config.js"></script>
+	
+	<!-- Leaflet 地圖套件 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+	<!-- 【調整】將地圖樣式移入外部 CSS 檔案 -->
+	<link rel="stylesheet" href="map-style.css" />
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+	<!-- proj4：TWD97 TM2 轉 WGS84 經緯度 -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.2/proj4.js"></script>
+
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <aside class="side-panel">
+        <div class="panel-header">
+            <div class="toolbar">
+                <button class="btn-primary" onclick="UI.openPointDrawer(false)">＋ 新增點位</button>
+                <button class="btn-secondary" onclick="UI.refresh()">重新整理</button>
+				<!-- 新增管理機關/人員 -->
+                <button id="btn-unit" class="btn-blue" onclick="UI.toggleInline('unit-inline', 'btn-unit')">管理單位 ▾</button>
+                <button id="btn-inspector" class="btn-blue" onclick="UI.toggleInline('inspector-inline', 'btn-inspector')">管理人員 ▾</button>
+				<button id="btn-spatial" class="btn-blue" onclick="UI.toggleInline('spatial-inline', 'btn-spatial')">空間檢索 ▾</button>
+                <button id="btn-unupdated" class="btn-blue" onclick="UI.toggleInline('unupdated-inline', 'btn-unupdated')">未更新查詢 ▾</button>
+                <button id="btn-nearby" class="btn-blue" onclick="UI.toggleInline('nearby-inline', 'btn-nearby')">附近點位 ▾</button>
+            </div>
+            <div class="search-box">
+                <input type="text" id="p_search" placeholder="搜尋點位名稱或編號..." oninput="UI.refresh()">
+				<!-- 自動更新, 取消搜尋按鈕 -->
+            </div>
+        </div>
+		
+		<div id="spatial-inline" class="inline-panel" style="display: none;">
+			<h4 style="margin:0 0 10px;">空間資訊檢索 (行政區篩選)</h4>
+			
+			<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
+				<div>
+					<label style="font-size:0.85em; color:#666;">選擇行政區：</label>
+					<select id="spatial_town" onchange="UI.onTownChange()" style="width:100%; padding:5px; border-radius:4px; border:1px solid #ccc;">
+						<option value="">-- 請選擇鄉鎮市區 --</option>
+					</select>
+				</div>
+				<div>
+					<label style="font-size:0.85em; color:#666;">選擇村里：</label>
+					<select id="spatial_village" style="width:100%; padding:5px; border-radius:4px; border:1px solid #ccc;">
+						<option value="">-- 請選擇村里 --</option>
+					</select>
+				</div>
+				<div style="display: flex; gap: 5px; margin-top: 5px;">
+					<button type="button" class="btn-primary" onclick="UI.filterPointsByDistrict()" style="flex:1;">篩選區域點位</button>
+					<button type="button" class="btn-secondary" onclick="UI.clearSpatialQuery()" style="flex:1;">還原</button>
+				</div>
+			</div>
+			
+			<div id="spatial-msg" style="margin-top: 10px; font-size: 0.9em; line-height: 1.5;"></div>
+		</div>
+		
+        <div id="unit-inline" class="inline-panel">
+            <h4 style="margin:0 0 10px;">調查單位管理</h4>
+            <form id="unit-form" style="margin-bottom: 15px;">
+                <input type="hidden" id="edit-unit-id">
+                <div class="form-grid">
+                    <div class="form-group"><label class="required">單位名稱</label><input type="text" id="u_name" required></div>
+                    <div class="form-group"><label>網址</label><input type="text" id="u_web"></div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label>電話</label><input type="tel" id="u_phone"></div>
+                    <div class="form-group"><label>地址</label><input type="text" id="u_addr"></div>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button type="submit" class="btn-primary" id="u-submit">儲存</button>
+                    <button type="button" class="btn-cancel" id="u-cancel" style="display:none;" onclick="UI.resetUnitForm()">取消編輯</button>
+                </div>
+            </form>
+            <div id="unit-list" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
+        </div>
+
+        <div id="inspector-inline" class="inline-panel">
+            <h4 style="margin:0 0 10px;">調查員管理</h4>
+            <form id="inspector-form" style="margin-bottom: 15px;">
+                <input type="hidden" id="edit-inspector-id">
+                <div class="form-grid">
+                    <div class="form-group"><label class="required">人員 ID</label><input type="text" id="ins_id" required></div>
+                    <div class="form-group"><label class="required">姓名</label><input type="text" id="ins_name" required></div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>所屬單位</label>
+                        <select id="ins_unit_select">
+                            <option value="">(無)</option>
+                            <option value="">載入中...</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>電話</label><input type="tel" id="ins_phone"></div>
+                </div>
+                <div style="display:flex; gap:8px; margin-top:10px;">
+                    <button type="submit" class="btn-primary" id="ins-submit">儲存</button>
+                    <button type="button" class="btn-cancel" id="ins-cancel" style="display:none;" onclick="UI.resetInspectorForm()">取消編輯</button>
+                </div>
+            </form>
+            <div id="inspector-list"></div>
+        </div>
+
+        <div id="unupdated-inline" class="inline-panel" style="display: none;">
+            <h4 style="margin:0 0 10px;">查詢未更新點位</h4>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>開始時間</label>
+                    <input type="date" id="q_start_date">
+                </div>
+                <div class="form-group">
+                    <label>結束時間</label>
+                    <input type="date" id="q_end_date">
+                </div>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+                <button type="button" class="btn-primary" onclick="UI.findUnupdatedPoints()">開始查詢</button>
+                <button type="button" class="btn-secondary" onclick="UI.clearUnupdatedQuery()">清除條件</button>
+            </div>
+            <div id="unupdated-msg" style="margin-top: 10px; font-size: 0.9em; color: #e74c3c;"></div>
+        </div>
+
+        <div id="nearby-inline" class="inline-panel" style="display: none;">
+            <h4 style="margin:0 0 10px;">附近控制點查詢</h4>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>搜尋半徑（公尺）</label>
+                    <input type="number" id="nearby_radius" value="500" min="1" step="1">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
+                <button type="button" class="btn-primary" onclick="UI.enableNearbySearch()">在地圖點選位置</button>
+                <button type="button" class="btn-secondary" onclick="UI.useCurrentLocationForNearby()">使用現在位置</button>
+                <button type="button" class="btn-cancel" onclick="UI.clearNearbySearch()">清除結果</button>
+            </div>
+
+            <div id="nearby-msg" style="margin-top: 10px; font-size: 0.9em; color: #333;"></div>
+        </div>
+
+        <div id="data-list">讀取資料中...</div>
+    </aside>
+
+    <section id="form-drawer" class="drawer">
+        <div class="drawer-header">
+            <h3 id="form-title">新增點位</h3>
+        </div>
+        <div class="drawer-body">
+            <form id="point-form">
+                <input type="hidden" id="edit-point-id">
+                <div class="form-group"><label class="required">點位名稱</label><input type="text" id="p_name" required></div>
+                <div class="form-grid">
+                    <div class="form-group"><label class="required">點位編號</label><input type="text" id="p_no" required></div>
+                    <div class="form-group">
+                        <label>點位類型</label>
+                        <select id="p_grade">
+                            <option value="一等水準點">一等水準點</option>
+                            <option value="二等水準點">二等水準點</option>
+                            <option value="三等水準點">三等水準點</option>
+                            <option value="加密控制點">加密控制點</option>
+                            <option value="導線點"    >導線點</option>
+                            <option value="衛星追蹤站"    >衛星追蹤站</option>
+                            <option value="一等衛星控制點">一等衛星控制點</option>
+                            <option value="二等衛星控制點">二等衛星控制點</option>
+                            <option value="三等衛星控制點">三等衛星控制點</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label class="required">N 坐標</label><input type="number" step="any" id="p_n" required></div>
+                    <div class="form-group"><label class="required">E 坐標</label><input type="number" step="any" id="p_e" required></div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label class="required">H 高程</label><input type="number" step="any" id="p_h" required></div>
+                    <div class="form-group"><label class="required">橢球高</label><input type="number" step="any" id="p_h_ell" required></div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label>EPSG</label><input type="number" id="p_epsg" value="3826"></div>
+                    <div class="form-group"><label>測量單位</label><select id="p_unit"><option value="">(無)</option></select></div>
+                    <div class="form-group"><label class="required">匯入者</label><input type="text" id="p_user" required></div>
+                </div>
+                <div class="form-group"><label>備註 (Remark)</label><textarea id="p_remark" rows="3"></textarea></div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-primary" id="p-submit" style="flex:1;">儲存點位資料</button>
+                    <button type="button" class="btn-cancel" onclick="UI.closePointDrawer()">取消</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <div id="record-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="record-form-title" style="margin-top:0;">調查紀錄</h3>
+            <form id="record-form">
+                <input type="hidden" id="edit-record-id">
+                <input type="hidden" id="target-point-no">
+                <div class="form-grid">
+                    <div class="form-group"><label class="required">時間</label><input type="datetime-local" id="r_time" required></div>
+                    <div class="form-group"><label class="required">人員</label><select id="r_inspector" required><option value="">載入中...</option></select></div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group"><label class="required">狀態</label><select id="r_status" required><option value="">載入中...</option></select></div>
+                    <div class="form-group"><label>照片</label><input type="file" id="r_photo_file" accept="image/*"></div>
+                </div>
+                <div class="form-group"><label>備註</label><input type="text" id="r_remark"></div>
+                <div id="upload-status" style="font-size: 0.8em; color: #00c984; margin-bottom: 10px;"></div>
+                <div style="display: flex; gap:8px;">
+                    <button type="submit" class="btn-primary" id="r-submit" style="flex:1;">儲存紀錄</button>
+                    <button type="button" class="btn-cancel" onclick="UI.closeModal('record-modal')">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+	
+	<!-- 各項功能被分散移動至以下檔案 -->
+	<!-- main: 管控輸入以及顯示更新 -->
+	<!-- points, records, etc: 對應名稱的資料表操作 -->
+	
+    <script src="app/points.js"></script>
+    <script src="app/records.js"></script>
+    <script src="app/inspector.js"></script>
+    <script src="app/surveyunit.js"></script>
+    <script src="app/main.js"></script>
+</body>
+</html>
