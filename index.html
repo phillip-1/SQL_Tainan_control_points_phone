@@ -27,7 +27,14 @@
     <div id="map"></div>
 
     <aside class="side-panel">
-        <div class="panel-header">
+	
+		<input type="checkbox" id="panel-toggle" style="display: none;">
+		<label for="panel-toggle" class="mobile-toggle-btn">
+			<span class="open-txt">展開選單 ▾</span>
+			<span class="close-txt">隱藏選單 ▴</span>
+		</label>
+        
+		<div class="panel-header">
             <div class="toolbar">
                 <button class="btn-primary" onclick="UI.openPointDrawer(false)">＋ 新增點位</button>
                 <button class="btn-secondary" onclick="UI.refresh()">重新整理</button>
