@@ -469,7 +469,7 @@
         z-index: 1 !important;
     }
 
-    /* 2. 主面板大包裝盒：回到頂部，大盒子包著按鈕與點位清單 */
+    /* 2. 主面板大包裝盒：💥 關鍵修正：overflow 改為 visible，允許彈窗溢出顯示！ */
     .side-panel {
         position: absolute !important;
         top: 10px !important;
@@ -477,7 +477,7 @@
         right: 10px !important;
         bottom: auto !important;
         width: calc(100% - 20px) !important;
-        max-height: 40vh !important; /* 限制整個大盒子的最高高度，釋放下方地圖 */
+        max-height: 40vh !important; /* 限制大盒子最高高度 */
         background: rgba(255, 255, 255, 0.96) !important;
         backdrop-filter: blur(4px) !important;
         border-radius: 12px !important;
@@ -486,7 +486,10 @@
         box-sizing: border-box !important;
         display: flex !important;
         flex-direction: column !important;
-        overflow: hidden !important; 
+        
+        /* 💥 核心修正：絕對不能用 hidden，否則內部的中央彈窗會被剪掉看不見 */
+        overflow: visible !important; 
+        
         z-index: 10 !important;
         transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -497,7 +500,7 @@
         flex-shrink: 0 !important;
     }
 
-    /* 3. 手機版主面板「一鍵全畫面隱藏 / 展開」動畫與樣式 */
+    /* 3. 手機版主面板「一鍵全畫面隱藏 / 展開」樣式 */
     .mobile-hide-toggle {
         display: block !important; 
         width: 100% !important;
@@ -517,9 +520,9 @@
     .mobile-hide-toggle .hide-text { display: inline !important; }
     .mobile-hide-toggle .show-text { display: none !important; }
 
-    /* 重點動畫：點擊後大盒子（.side-panel）高度秒縮死，釋放地圖 */
+    /* 點擊最小化後，大盒子縮死 */
     .side-panel.minimized {
-        max-height: 44px !important; /* 縮到極致扁平：只留一條展開按鈕的高度 */
+        max-height: 44px !important; 
         background: rgba(255, 255, 255, 0.85) !important; 
         box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
     }
@@ -527,7 +530,13 @@
     .side-panel.minimized .mobile-hide-toggle .hide-text { display: none !important; }
     .side-panel.minimized .mobile-hide-toggle .show-text { display: inline !important; }
 
-    /* 4. 點位條列清單：緊緊跟在搜尋框正下方 */
+    /* 💥 關鍵聯動：當大盒子被隱藏時，內部的所有點位卡片跟內容一律切斷隱藏，防止溢出地圖 */
+    .side-panel.minimized #data-list,
+    .side-panel.minimized .panel-header {
+        display: none !important;
+    }
+
+    /* 4. 點位條列清單：當大盒子展開時，在內部自由滾動 */
     #data-list {
         position: relative !important;
         top: auto !important;
@@ -537,7 +546,7 @@
         width: 100% !important;
         height: auto !important;
         flex: 1 !important;
-        overflow-y: auto !important;
+        overflow-y: auto !important; /* 限制在大盒子內滾動 */
         padding: 6px 0 0 0 !important;
         margin: 0 !important;
         background: transparent !important;
@@ -558,7 +567,7 @@
     .card-actions { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; margin-top: 6px !important; justify-content: flex-end !important; }
     .card-actions button { padding: 4px 8px !important; font-size: 11px !important; height: 28px !important; }
 
-    /* 5. 工具列橫向手指滑動與按鈕排序（管理功能靠後） */
+    /* 5. 工具列橫向手指滑動與按鈕排序 */
     .toolbar {
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -585,39 +594,43 @@
     .search-box, .search-box input { width: 100% !important; height: 34px !important; box-sizing: border-box !important; }
 
     /* ==========================================================================
-       💥 6. 功能選單中央彈窗化優化 (位置往下移、補進「隱藏選單時同步消失」防護)
+       💥 6. 功能選單中央彈窗化：利用 fixed 屬性徹底抽離大盒子邊界限制
        ========================================================================== */
-.inline-panel {
+    .inline-panel {
         display: none; 
-        position: fixed !important;
         
-        /* 保持讓出頂部 side-panel 工具列（130px），方便再按一次按鈕取消 */
-        top: 130px !important; 
+        /* 💥 核心修正：利用 fixed 強行打破外層 side-panel 的 max-height 牢籠 */
+        position: fixed !important; 
         
-        /* 左右維持對稱 5% 呼吸空隙，絕對不切邊 */
+        /* 讓出頂部工具列的高度，確保不會蓋到按鈕，方便再次點擊取消 */
+        top: 135px !important; 
+        
+        /* 左右維持對稱 5% 呼吸空隙，水平置中絕對不切邊 */
         left: 5% !important;
         right: 5% !important; 
         width: auto !important;
         max-width: none !important;
         
-        /* 💥 關鍵修正：放寬高度限制（從 45vh 提升到 75vh），讓欄位完全伸展不被壓縮 */
-        max-height: 75vh !important; 
-        overflow-y: auto !important; /* 萬一螢幕真的很小，依然保底允許在視窗內滾動 */
+        /* 解除高度限制，讓行政區、村里下拉選單完美伸展 */
+        max-height: 70vh !important; 
+        overflow-y: auto !important; 
         
         background: #ffffff !important;
-        border: 2px solid #0d6efd !important; 
+        border: 2px solid #0d6efd !important; /* 藍色邊框 */
         border-radius: 14px !important;
         box-shadow: 0 15px 40px rgba(0,0,0,0.35) !important;
         padding: 16px !important;
-        z-index: 99999 !important; /* 最強圖層壓制 */
+        
+        /* 💥 關鍵核心：把權限拉到最高，這樣就不會被大盒子裡面的其他元件擋到 */
+        z-index: 99999 !important; 
     }
-	
-    /* 當 JavaScript 點擊展開時，強制轉換成 block 顯示 */
+    
+    /* 當 JavaScript 切換展開時，強制轉換成 block 顯示 */
     .inline-panel[style*="display: block"] { 
         display: block !important; 
     }
 
-    /* 💥 關鍵核心追加：當父層大盒子點擊「隱藏選單」被加上 .minimized 時，內部的彈窗一律強制消失！ */
+    /* 當大盒子點擊「隱藏選單」被加上 .minimized 時，內部的中央彈窗一律強制同步消失 */
     .side-panel.minimized .inline-panel {
         display: none !important;
     }
@@ -625,7 +638,7 @@
     .inline-panel .form-grid { display: flex !important; flex-direction: column !important; gap: 8px !important; }
 
     /* ==========================================================================
-       💥 7. 新增點位視窗 (.drawer) 置頂半版懸浮
+       💥 7. 新增點位視窗 (.drawer) 置頂半版懸浮 (下留 48% 滑地圖)
        ========================================================================== */
     .drawer {
         position: fixed !important;
@@ -638,7 +651,7 @@
         height: 52vh !important; 
         border-radius: 0 0 12px 12px !important; 
         box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
-        z-index: 99998 !important; 
+        z-index: 100000 !important; /* 圖層拉高 */
         background: #ffffff !important;
         opacity: 0;
         visibility: hidden;
@@ -653,7 +666,7 @@
     .form-group input, .form-group select, .form-group textarea { height: 32px !important; font-size: 12px !important; }
 
     /* 歷史紀錄彈窗 */
-    .modal-content { width: 90% !important; max-width: 340px !important; margin: auto !important; position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; border-radius: 14px !important; z-index: 100000 !important; }
+    .modal-content { width: 90% !important; max-width: 340px !important; margin: auto !important; position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; border-radius: 14px !important; z-index: 100001 !important; }
 
     /* Leaflet 地圖工具列 */
     .leaflet-bottom { bottom: 15px !important; }
