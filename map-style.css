@@ -587,31 +587,31 @@
     /* ==========================================================================
        💥 6. 功能選單中央彈窗化優化 (位置往下移、補進「隱藏選單時同步消失」防護)
        ========================================================================== */
-	.inline-panel {
+.inline-panel {
         display: none; 
         position: fixed !important;
         
-        /* 💥 關鍵修正：改用固定像素 top，精準讓開頂部 side-panel 的工具列與搜尋框（約 110px ~ 120px） */
+        /* 保持讓出頂部 side-panel 工具列（130px），方便再按一次按鈕取消 */
         top: 130px !important; 
         
-        /* 左右維持 5% 呼吸空隙，水平對稱絕對不切邊 */
+        /* 左右維持對稱 5% 呼吸空隙，絕對不切邊 */
         left: 5% !important;
         right: 5% !important; 
         width: auto !important;
         max-width: none !important;
         
-        /* 💥 關鍵修正：配合下移，限縮最高高度，防止鍵盤彈出時往下撐破螢幕 */
-        max-height: 45vh !important; 
-        overflow-y: auto !important;
+        /* 💥 關鍵修正：放寬高度限制（從 45vh 提升到 75vh），讓欄位完全伸展不被壓縮 */
+        max-height: 75vh !important; 
+        overflow-y: auto !important; /* 萬一螢幕真的很小，依然保底允許在視窗內滾動 */
         
         background: #ffffff !important;
         border: 2px solid #0d6efd !important; 
         border-radius: 14px !important;
         box-shadow: 0 15px 40px rgba(0,0,0,0.35) !important;
         padding: 16px !important;
-        z-index: 99999 !important; /* 圖層權限最高 */
+        z-index: 99999 !important; /* 最強圖層壓制 */
     }
-
+	
     /* 當 JavaScript 點擊展開時，強制轉換成 block 顯示 */
     .inline-panel[style*="display: block"] { 
         display: block !important; 
