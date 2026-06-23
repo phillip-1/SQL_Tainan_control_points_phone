@@ -587,28 +587,29 @@
     /* ==========================================================================
        💥 6. 功能選單中央彈窗化優化 (位置往下移、補進「隱藏選單時同步消失」防護)
        ========================================================================== */
-	.inline-panel {
-        display: none !important; /* 預設隱藏 */
+.inline-panel {
+        display: none; 
         
         position: fixed !important;
-        /* 💥 關鍵修正：將 top 往回拉到 12%，直接無視主面板按鈕的往下擠壓 */
-        top: 12% !important; 
+        top: 15% !important; 
+        
+        /* 💥 關鍵修正：左右各留 5% 空隙，讓視窗端端正正掛在螢幕水平正中央，絕對不再切邊 */
         left: 5% !important;
-        transform: none !important;
+        right: 5% !important; 
         
-        width: 90% !important;
-        max-width: 350px !important;
+        /* 💥 關鍵修正：寬度改為 auto，讓它乖乖在左右 5% 之間自適應（移除死寬度 max-width 限制） */
+        width: auto !important;
+        max-width: none !important;
         
-        /* 💥 關鍵修正：微調最高高度到 60vh，確保即使鍵盤彈出，最下方的「送出/檢索」按鈕也絕對露得出來、點得到 */
-        max-height: 60vh !important; 
-        overflow-y: auto !important; /* 超出時可在內部順暢滾動 */
+        max-height: 55vh !important; 
+        overflow-y: auto !important;
         
         background: #ffffff !important;
         border: 2px solid #0d6efd !important; 
         border-radius: 14px !important;
         box-shadow: 0 15px 40px rgba(0,0,0,0.35) !important;
         padding: 16px !important;
-        z-index: 99999 !important; /* 最高權限，絕對壓制 */
+        z-index: 99999 !important; 
     }
 
     /* 當 JavaScript 點擊展開時，強制轉換成 block 顯示 */
