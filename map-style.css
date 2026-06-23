@@ -460,42 +460,77 @@
 			max-width: 90%; 
 		}
 		
-	@media (max-width: 768px) {
-    /* 1. 地圖背景滿版 */
+	/* ==========================================
+   📱 最終完美手機排版：彈窗圖層絕對壓制、卡片置底優化
+   ========================================== */
+@media (max-width: 768px) {
+    /* 地圖背景滿版 */
     #map {
         position: absolute;
         inset: 0;
         z-index: 1;
     }
 
-    /* 2. 主面板寬度自適應，防止右側切邊 */
+    /* 最初的主視窗工具列：置頂，高度極小化 */
     .side-panel {
         position: absolute !important;
         top: 10px !important;
         left: 10px !important;
         right: 10px !important;
         bottom: auto !important;
-        width: calc(100% - 20px) !important; /* 自動扣除左右間距，絕不超出螢幕 */
-        max-height: 110px !important; /* 只留工具列與搜尋框的高度，把下方地圖完整釋放 */
+        width: calc(100% - 20px) !important;
+        max-height: 105px !important; /* 嚴格鎖死高度，只留按鈕跟搜尋框 */
         background: rgba(255, 255, 255, 0.96) !important;
         backdrop-filter: blur(4px);
         border-radius: 12px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
         overflow: visible !important; 
+        z-index: 10 !important; /* 基本工具列權限 */
     }
 
-    /* 點位列表扁平地懸浮在主面板下方 */
+    /* 💥 修正截圖痛點 1：把點位列表及卡片強制改為「置底懸浮」 */
+    /* 這樣它就會乖乖待在最下面，絕不擋在螢幕中間干擾視線！ */
     #data-list {
-        position: absolute !important;
-        top: 105px !important;
-        left: 0 !important;
-        width: 100% !important;
-        max-height: 130px !important;
-        padding: 10px !important;
-        z-index: 9 !important;
+        position: fixed !important;
+        top: auto !important;
+        bottom: 15px !important; /* 置底懸浮 */
+        left: 10px !important;
+        width: calc(100% - 20px) !important;
+        max-height: 140px !important; /* 限制死最高高度，防止往上撐爆 */
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        overflow-y: auto !important;
+        z-index: 50 !important; /* 低於中央彈窗，但高於地圖 */
     }
 
-    /* 3. 工具列改為單排橫向手指滑動列 */
+    /* 手機版點位資料卡片輕量化 */
+    .data-card {
+        background: #ffffff !important;
+        padding: 10px !important;
+        margin-bottom: 0 !important; /* 只有單張或精簡時不佔空間 */
+        box-sizing: border-box !important;
+        width: 100% !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.18) !important;
+    }
+    
+    /* 確保卡片內按鈕文字不會太大擠爆 */
+    .card-actions {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        margin-top: 6px !important;
+        justify-content: flex-end !important;
+    }
+    .card-actions button {
+        padding: 5px 10px !important;
+        font-size: 12px !important;
+        height: 32px !important;
+    }
+
+    /* 工具列改為單排橫向手指滑動列 */
     .toolbar {
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -506,22 +541,19 @@
         -webkit-overflow-scrolling: touch;
     }
 
-    /* 所有按鈕的基本手機樣式 */
     .toolbar button, .btn-blue {
-        flex: 0 0 auto !important; /* 禁止按鈕被壓扁 */
+        flex: 0 0 auto !important;
         padding: 6px 12px !important;
         font-size: 13px !important;
         height: 34px !important;
         border-radius: 6px !important;
-        order: 1; /* 預設順序權重 */
+        order: 1;
     }
+    .toolbar button:first-child { order: 0 !important; background-color: #00c984 !important; color: white !important; }
+    #btn-unit { order: 10 !important; }       
+    #btn-inspector { order: 11 !important; }  
 
-    /* 電腦端維持原樣，手機端將單位與人員挪到隊列最後面 */
-    .toolbar button:first-child { order: 0 !important; background-color: #27ae60 !important; color: white !important; } /* 新增點位最前 */
-    #btn-unit { order: 10 !important; }       /* 管理單位排到最後 */
-    #btn-inspector { order: 11 !important; }  /* 管理人員排到最後 */
-
-    /* 搜尋框滿版防切 */
+    /* 搜尋框滿版 */
     .search-box, .search-box input {
         width: 100% !important;
         height: 34px !important;
@@ -529,69 +561,64 @@
     }
 
     /* ==========================================
-       💥 4. 中央彈窗化：將查詢功能面板改為「畫面正中央彈窗」
+       💥 修正截圖痛點 2：給予中央彈窗最極致的圖層壓制 (z-index: 99999)
        ========================================== */
     .inline-panel {
-        display: none; /* 預設絕對隱藏，不亂爆開 */
+        display: none; 
         
         position: fixed !important;
         top: 50% !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
-        width: 88% !important;
-        max-width: 340px !important;
-        max-height: 70vh !important;
+        width: 86% !important;
+        max-width: 330px !important;
+        max-height: 65vh !important;
         overflow-y: auto !important;
         background: #ffffff !important;
         border: 2px solid #0d6efd !important; 
         border-radius: 14px !important;
-        box-shadow: 0 12px 35px rgba(0,0,0,0.3) !important;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.35) !important; /* 加深陰影，增強立體感 */
         padding: 16px !important;
-        z-index: 9999 !important; 
+        z-index: 99999 !important; /* 🔥 用最高的權限強行壓在點位卡片和所有物件上方 */
     }
 
     .inline-panel[style*="display: block"] {
         display: block !important;
     }
 
-    /* 彈窗內部的表單改為單欄排版 */
     .form-grid {
         display: flex !important;
         flex-direction: column !important;
         gap: 8px !important;
     }
 
-    /* ==========================================
-       💥 5. 改回之前那版：新增點位視窗 (.drawer) 置頂、留空下方 48% 地圖空間
-       ========================================== */
+    /* 新增點位視窗 (.drawer) 維持半版置頂，留空下方地圖空間 */
     .drawer {
         position: fixed !important;
-        top: -100%; /* 隱藏時在螢幕上方外 */
-        left: 10px !important; /* 左右保留精緻懸浮間距，與主面板一致不切齊邊緣 */
+        top: -100%; 
+        left: 10px !important; 
         right: auto !important;
         bottom: auto !important;
-        transform: none !important; /* 取消中央彈窗的置中位移 */
-        width: calc(100% - 20px) !important; /* 寬度扣除兩側間距 */
-        height: 52vh !important; /* 💥 嚴格限縮高度為 52%，強制留出下方 48% 的超大地圖空間 */
-        border-radius: 0 0 12px 12px !important; /* 下方圓角懸浮 */
+        transform: none !important; 
+        width: calc(100% - 20px) !important; 
+        height: 52vh !important; 
+        border-radius: 0 0 12px 12px !important; 
         box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
-        z-index: 10000 !important;
+        z-index: 99998 !important; /* 僅次於中央彈窗 */
         background: #ffffff !important;
         opacity: 0;
         visibility: hidden;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    /* 打開時從頂部優雅滑落懸浮 */
     .drawer.open {
         top: 0 !important; 
         opacity: 1 !important;
         visibility: visible !important;
-        right: auto !important;
     }
     
     .drawer-backdrop {
-        z-index: 9998 !important;
+        z-index: 99990 !important;
     }
 
     .drawer-body {
@@ -601,7 +628,6 @@
         box-sizing: border-box !important;
     }
 
-    /* 新增點位表單內部的 X, Y 坐標等維持兩列，縮短行高方便閱讀 */
     .drawer .form-grid {
         display: grid !important;
         grid-template-columns: 1fr 1fr !important;
@@ -622,10 +648,12 @@
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
         border-radius: 14px !important;
+        z-index: 100000 !important;
     }
 
-    /* 確保 Leaflet 地圖工具出現在下方空白視野 */
+    /* 修正 Leaflet 地圖工具，剛好在底部卡片的上方邊緣 */
     .leaflet-bottom {
-        bottom: 15px !important;
+        bottom: 165px !important; /* 抬高避免被置底卡片擋住 */
+        transition: bottom 0.2s ease;
     }
 }
