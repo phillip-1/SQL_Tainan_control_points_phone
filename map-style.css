@@ -587,18 +587,21 @@
     /* ==========================================================================
        💥 6. 功能選單中央彈窗化優化 (位置往下移、補進「隱藏選單時同步消失」防護)
        ========================================================================== */
-    .inline-panel {
+	.inline-panel {
         display: none !important; /* 預設隱藏 */
         
         position: fixed !important;
-        /* 💥 調整點：位置由 12% 往下挪到頂部下方 20% 處，視覺比例更完美好看 */
-        top: 20% !important; 
+        /* 💥 關鍵修正：將 top 往回拉到 12%，直接無視主面板按鈕的往下擠壓 */
+        top: 12% !important; 
         left: 5% !important;
         transform: none !important;
+        
         width: 90% !important;
         max-width: 350px !important;
-        max-height: 65vh !important; 
-        overflow-y: auto !important; 
+        
+        /* 💥 關鍵修正：微調最高高度到 60vh，確保即使鍵盤彈出，最下方的「送出/檢索」按鈕也絕對露得出來、點得到 */
+        max-height: 60vh !important; 
+        overflow-y: auto !important; /* 超出時可在內部順暢滾動 */
         
         background: #ffffff !important;
         border: 2px solid #0d6efd !important; 
