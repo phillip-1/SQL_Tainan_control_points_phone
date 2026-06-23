@@ -460,10 +460,7 @@
 			max-width: 90%; 
 		}
 		
-	/* ==========================================================================
-   📱 完美手機版響應式排版 (RWD) 終極修正版
-   更新內容：中央彈窗高度加大至 68vh、強化內部防溢出與隱藏防護
-   ========================================================================== */
+/* 手機排版 */
 @media (max-width: 768px) {
     /* 1. 地圖背景滿版 */
     #map {
@@ -491,17 +488,18 @@
         flex-direction: column !important;
         overflow: hidden !important; 
         z-index: 10 !important;
+        transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-	
-	.panel-header {
+
+    .panel-header {
         padding: 0 0 6px 0 !important;
         border-bottom: 1px solid #e5e7eb !important;
         flex-shrink: 0 !important;
     }
-	
-	/* 隱藏按鈕的基本樣式 */
+
+    /* 3. 手機版主面板「一鍵全畫面隱藏 / 展開」動畫與樣式 */
     .mobile-hide-toggle {
-        display: block !important; /* 確保手機端一定看得到 */
+        display: block !important; 
         width: 100% !important;
         background: #f1f3f5 !important;
         color: #343a40 !important;
@@ -516,22 +514,20 @@
         flex-shrink: 0 !important;
     }
     
-    /* 預設狀態：文字顯示「隱藏選單」 */
     .mobile-hide-toggle .hide-text { display: inline !important; }
     .mobile-hide-toggle .show-text { display: none !important; }
 
-    /* 💥 重點動畫：點擊後大盒子（.side-panel）會加上 .minimized，高度秒縮死 */
+    /* 重點動畫：點擊後大盒子（.side-panel）高度秒縮死，釋放地圖 */
     .side-panel.minimized {
         max-height: 44px !important; /* 縮到極致扁平：只留一條展開按鈕的高度 */
-        background: rgba(255, 255, 255, 0.85) !important; /* 變更透明，減少視覺存在感 */
+        background: rgba(255, 255, 255, 0.85) !important; 
         box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
     }
     
-    /* 縮小狀態下：按鈕文字自動切換為「展開選單」 */
     .side-panel.minimized .mobile-hide-toggle .hide-text { display: none !important; }
     .side-panel.minimized .mobile-hide-toggle .show-text { display: inline !important; }
 
-    /* 3. 點位條列清單：緊緊跟在搜尋框正下方 */
+    /* 4. 點位條列清單：緊緊跟在搜尋框正下方 */
     #data-list {
         position: relative !important;
         top: auto !important;
@@ -562,7 +558,7 @@
     .card-actions { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; margin-top: 6px !important; justify-content: flex-end !important; }
     .card-actions button { padding: 4px 8px !important; font-size: 11px !important; height: 28px !important; }
 
-    /* 4. 工具列橫向手指滑動與按鈕排序（管理功能靠後） */
+    /* 5. 工具列橫向手指滑動與按鈕排序（管理功能靠後） */
     .toolbar {
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -589,22 +585,20 @@
     .search-box, .search-box input { width: 100% !important; height: 34px !important; box-sizing: border-box !important; }
 
     /* ==========================================================================
-       💥 5. 功能選單中央彈窗化優化 (加大高度、補充進隱藏防護)
+       💥 6. 功能選單中央彈窗化優化 (位置往下移、補進「隱藏選單時同步消失」防護)
        ========================================================================== */
     .inline-panel {
-        /* 確保不需要顯示時，百分之百完全被隱藏不佔空間 */
-        display: none !important; 
+        display: none !important; /* 預設隱藏 */
         
         position: fixed !important;
-        top: 12% !important; /* 微調往下挪一點，維持頂部防震 */
+        /* 💥 調整點：位置由 12% 往下挪到頂部下方 20% 處，視覺比例更完美好看 */
+        top: 20% !important; 
         left: 5% !important;
         transform: none !important;
         width: 90% !important;
         max-width: 350px !important;
-        
-        /* 💥 調整點：最高高度從 55vh 擴大到 68vh，可以往下多看一點欄位內容 */
-        max-height: 68vh !important; 
-        overflow-y: auto !important; /* 超出時內部滾動 */
+        max-height: 65vh !important; 
+        overflow-y: auto !important; 
         
         background: #ffffff !important;
         border: 2px solid #0d6efd !important; 
@@ -619,10 +613,15 @@
         display: block !important; 
     }
 
+    /* 💥 關鍵核心追加：當父層大盒子點擊「隱藏選單」被加上 .minimized 時，內部的彈窗一律強制消失！ */
+    .side-panel.minimized .inline-panel {
+        display: none !important;
+    }
+
     .inline-panel .form-grid { display: flex !important; flex-direction: column !important; gap: 8px !important; }
 
     /* ==========================================================================
-       💥 6. 新增點位視窗 (.drawer) 置頂半版懸浮
+       💥 7. 新增點位視窗 (.drawer) 置頂半版懸浮
        ========================================================================== */
     .drawer {
         position: fixed !important;
@@ -641,7 +640,7 @@
         visibility: hidden;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .drawer.open { top: 0 !important; opacity: 1 !important; visibility: visible !important; }
+    .drawer.open { top: 0 !important; opacity: 1 !important; visibility: visible !important; right: auto !important; }
     .drawer-backdrop { z-index: 99990 !important; }
     .drawer-body { height: calc(100% - 50px) !important; overflow-y: auto !important; padding: 12px 15px !important; box-sizing: border-box !important; }
     .drawer .form-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
