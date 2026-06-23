@@ -465,18 +465,8 @@
 		/* ==========================================
    📱 手機與平板行動裝置排版優化 (螢幕寬度 768px 以下)
    ========================================== */
-了解，外業人員在現場看大範圍地圖時，被遮掉一半螢幕確實非常影響操作體驗。我們換個思路：讓手機版的介面極簡化，只留下最核心的「看控制點、新增點位、附近查詢、未更新查詢」以及「空間檢索」。
-
-我們可以透過 CSS 把管理單位、管理人員隱藏，並把按鈕改小，將側邊欄縮小成頂部或側邊的小懸浮窗，讓地圖視野放到最大。
-
-以下是優化後的 CSS 手機版 RWD 改良方案，請把 map-style.css 底部剛剛加的那段 @media 完全替換掉：
-
-CSS
-/* ==========================================
-   📱 輕量化手機排版優化 (螢幕寬度 768px 以下)
-   ========================================== */
 @media (max-width: 768px) {
-    /* 1. 地圖完全填滿，不受干擾 */
+    /* 1. 地圖背景滿版 */
     #map {
         position: absolute;
         top: 0;
@@ -486,85 +476,96 @@ CSS
         z-index: 1;
     }
 
-    /* 2. 側邊欄化身為「頂部輕量懸浮窗」，不擋住地圖下方 */
+    /* 2. 頂部面板：寬度扣除左右間距，不使用死寬度 */
     .side-panel {
         position: absolute;
         top: 10px;
         left: 10px;
-        right: 10px;
         width: calc(100% - 20px) !important;
-        max-height: 45vh; /* 縮小最大高度 */
-        height: auto;
-        bottom: auto; /* 取消置底 */
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(4px); /* 磨砂玻璃質感 */
+        max-height: 45vh;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(4px);
         border-radius: 12px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.15);
         z-index: 10;
         padding: 10px;
-        box-sizing: border-box;
+        box-sizing: border-box; /* 確保 padding 不會把面板撐大 */
     }
 
-    /* 3. 🔥 隱藏手機上不必要的後台功能 (管理單位與管理人員) */
+    /* 3. 🔥 手機版自動隱藏後台管理功能 */
     #btn-unit, #btn-inspector, #unit-inline, #inspector-inline {
         display: none !important;
     }
 
-    /* 4. 縮小工具列按鈕尺寸，改為三列並排 */
+    /* 4. 🔥 修正切邊：將工具列改造為「手指左右可滑動」的單排導覽列 */
     .toolbar {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 6px;
+        display: flex !important; /* 改為彈性盒子單排排列 */
+        flex-wrap: nowrap !important; /* 強制不換行 */
+        overflow-x: auto; /* 💥 關鍵：右側超出時，手指可以左右自然滑動 */
+        gap: 8px;
         margin-bottom: 8px;
+        padding-bottom: 4px; /* 留給滑動條一點點空間 */
+        -webkit-overflow-scrolling: touch; /* 讓 iOS 滑動更順暢 */
     }
 
-    /* 精簡按鈕字體與高度 */
-    .toolbar button, .btn-primary, .btn-secondary, .btn-blue, .btn-cancel {
-        padding: 6px 4px !important;
-        font-size: 12px !important; /* 縮小字體 */
-        height: 34px; /* 縮小高度 */
+    /* 確保滑動工具列裡面的每個按鈕不會被壓扁 */
+    .toolbar button, .btn-blue {
+        flex: 0 0 auto !important; /* 💥 關鍵：禁止 Vercel/瀏覽器自動壓縮按鈕 */
+        padding: 6px 12px !important; /* 給予舒適的左右留白 */
+        font-size: 13px !important;
+        height: 34px;
         border-radius: 6px;
     }
 
-    /* 讓「新增點位」依然獨占第一排，方便現場點擊 */
+    /* 讓「新增點位」在滑動列中依然醒目 */
     .toolbar button:first-child {
-        grid-column: span 3;
         background-color: #27ae60;
-        height: 36px;
+        font-weight: bold;
     }
 
-    /* 5. 搜尋框與清單微調 */
+    /* 5. 搜尋框修正 */
+    .search-box {
+        width: 100%;
+        box-sizing: border-box;
+    }
     .search-box input {
-        height: 34px;
-        font-size: 13px;
+        width: 100%;
+        height: 36px;
+        font-size: 14px;
         padding: 6px 10px;
+        box-sizing: border-box;
     }
 
-    /* 內嵌面板微調 */
-    .inline-panel {
-        margin-top: 8px;
-        padding: 10px;
-        font-size: 13px;
-    }
-
-    /* 6. 點位資料卡片輕量化，限制高度滾動，不撐大面板 */
+    /* 6. 🔥 修正卡片超出：限制列表寬度與卡片動作按鈕排版 */
     #data-list {
         max-height: 180px; 
         overflow-y: auto;
         margin-top: 8px;
+        width: 100%;
     }
     
     .data-card {
-        padding: 8px;
+        padding: 10px;
         margin-bottom: 6px;
+        box-sizing: border-box;
+        width: 100%; /* 確保卡片與母面板同寬 */
     }
     
-    .data-card h3 {
-        font-size: 14px;
-        margin: 0 0 4px 0;
+    /* 修正卡片內的按鈕區塊，如果太擠就自動換行，絕不超出邊界 */
+    .card-actions {
+        display: flex;
+        flex-wrap: wrap; /* 💥 關鍵：手機上按鈕不夠放時自動往下排，不切齊邊線 */
+        gap: 6px;
+        margin-top: 8px;
+    }
+    
+    .card-actions button {
+        padding: 4px 8px !important;
+        font-size: 12px !important;
+        height: 30px;
     }
 
-    /* 7. 🔥 新增點位的抽屜不要佔用到最下方：改為精緻的中央彈窗彈出 */
+    /* 7. 新增點位視窗改為優雅的中央跳窗 */
     .drawer {
         position: fixed;
         top: 50% !important;
@@ -589,20 +590,8 @@ CSS
         visibility: visible;
         transform: translate(-50%, -50%) scale(1);
     }
-    
-    .drawer-body {
-        max-height: 65vh;
-        overflow-y: auto;
-        padding: 15px;
-    }
 
-    .form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* 坐標等項目依然保持兩列，縮短行高 */
-        gap: 8px;
-    }
-
-    /* 8. 修正 Leaflet 地圖內建按鈕不被擋住 */
+    /* 8. 避免地圖下方 Leaflet 標記被擋 */
     .leaflet-bottom {
         bottom: 20px !important;
     }
