@@ -461,7 +461,8 @@
 		}
 		
 	/* ==========================================================================
-   📱 完美手機版響應式排版 (RWD) 修正版：大包裝盒不拆分、功能中央彈窗化
+   📱 完美手機版響應式排版 (RWD) 終極修正版
+   更新內容：中央彈窗高度加大至 68vh、強化內部防溢出與隱藏防護
    ========================================================================== */
 @media (max-width: 768px) {
     /* 1. 地圖背景滿版 */
@@ -471,8 +472,7 @@
         z-index: 1 !important;
     }
 
-    /* 2. 主面板大包裝盒：回到頂部，寬度自適應防切邊 */
-    /* 💥 修正：不再把內部元件拉出去，維持原本大盒子包著按鈕與點位清單的階層 */
+    /* 2. 主面板大包裝盒：回到頂部，大盒子包著按鈕與點位清單 */
     .side-panel {
         position: absolute !important;
         top: 10px !important;
@@ -480,18 +480,13 @@
         right: 10px !important;
         bottom: auto !important;
         width: calc(100% - 20px) !important;
-        
-        /* 💥 嚴格限制整個大盒子的最高高度，留出至少 55% 下方空間看地圖 */
-        max-height: 40vh !important; 
-        
+        max-height: 40vh !important; /* 限制整個大盒子的最高高度，釋放下方地圖 */
         background: rgba(255, 255, 255, 0.96) !important;
         backdrop-filter: blur(4px) !important;
         border-radius: 12px !important;
         box-shadow: 0 4px 15px rgba(0,0,0,0.15) !important;
         padding: 10px !important;
         box-sizing: border-box !important;
-        
-        /* 💥 當點位清單很多時，直接在大盒子內部滾動，絕不往外亂衝 */
         display: flex !important;
         flex-direction: column !important;
         overflow: hidden !important; 
@@ -501,20 +496,20 @@
     .panel-header {
         padding: 0 0 6px 0 !important;
         border-bottom: 1px solid #e5e7eb !important;
-        flex-shrink: 0 !important; /* 確保按鈕跟搜尋框不會被擠壓 */
+        flex-shrink: 0 !important;
     }
 
-    /* 3. 點位條列清單：老老實實待在大盒子內部的下方 */
+    /* 3. 點位條列清單：緊緊跟在搜尋框正下方 */
     #data-list {
-        position: relative !important; /* 💥 修正：還原回相對定位，跟在搜尋框正下方 */
+        position: relative !important;
         top: auto !important;
         left: auto !important;
         right: auto !important;
         bottom: auto !important;
         width: 100% !important;
         height: auto !important;
-        flex: 1 !important; /* 自動填滿大盒子的剩餘空間 */
-        overflow-y: auto !important; /* 清單多時可在內部滾動 */
+        flex: 1 !important;
+        overflow-y: auto !important;
         padding: 6px 0 0 0 !important;
         margin: 0 !important;
         background: transparent !important;
@@ -535,7 +530,7 @@
     .card-actions { display: flex !important; flex-wrap: wrap !important; gap: 4px !important; margin-top: 6px !important; justify-content: flex-end !important; }
     .card-actions button { padding: 4px 8px !important; font-size: 11px !important; height: 28px !important; }
 
-    /* 4. 工具列橫向手指滑動 */
+    /* 4. 工具列橫向手指滑動與按鈕排序（管理功能靠後） */
     .toolbar {
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -562,31 +557,40 @@
     .search-box, .search-box input { width: 100% !important; height: 34px !important; box-sizing: border-box !important; }
 
     /* ==========================================================================
-       💥 5. 功能選單中央彈窗化 (.inline-panel)
+       💥 5. 功能選單中央彈窗化優化 (加大高度、補充進隱藏防護)
        ========================================================================== */
     .inline-panel {
-        display: none; 
+        /* 確保不需要顯示時，百分之百完全被隱藏不佔空間 */
+        display: none !important; 
+        
         position: fixed !important;
-        top: 15% !important; /* 掛在螢幕偏上方，防止被虛擬鍵盤推到外面 */
+        top: 12% !important; /* 微調往下挪一點，維持頂部防震 */
         left: 5% !important;
         transform: none !important;
         width: 90% !important;
         max-width: 350px !important;
-        max-height: 55vh !important; 
-        overflow-y: auto !important;
+        
+        /* 💥 調整點：最高高度從 55vh 擴大到 68vh，可以往下多看一點欄位內容 */
+        max-height: 68vh !important; 
+        overflow-y: auto !important; /* 超出時內部滾動 */
+        
         background: #ffffff !important;
         border: 2px solid #0d6efd !important; 
         border-radius: 14px !important;
         box-shadow: 0 15px 40px rgba(0,0,0,0.35) !important;
         padding: 16px !important;
-        z-index: 99999 !important; /* 最高權限，絕對壓制在所有物件上方 */
+        z-index: 99999 !important; /* 最高權限，絕對壓制 */
     }
 
-    .inline-panel[style*="display: block"] { display: block !important; }
+    /* 當 JavaScript 點擊展開時，強制轉換成 block 顯示 */
+    .inline-panel[style*="display: block"] { 
+        display: block !important; 
+    }
+
     .inline-panel .form-grid { display: flex !important; flex-direction: column !important; gap: 8px !important; }
 
     /* ==========================================================================
-       💥 6. 新增點位視窗 (.drawer) 置頂、留空下方地圖空間
+       💥 6. 新增點位視窗 (.drawer) 置頂半版懸浮
        ========================================================================== */
     .drawer {
         position: fixed !important;
@@ -616,6 +620,6 @@
     /* 歷史紀錄彈窗 */
     .modal-content { width: 90% !important; max-width: 340px !important; margin: auto !important; position: fixed !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; border-radius: 14px !important; z-index: 100000 !important; }
 
-    /* Leaflet 地圖工具列微調 */
+    /* Leaflet 地圖工具列 */
     .leaflet-bottom { bottom: 15px !important; }
 }
