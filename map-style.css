@@ -492,12 +492,44 @@
         overflow: hidden !important; 
         z-index: 10 !important;
     }
-
-    .panel-header {
+	
+	.panel-header {
         padding: 0 0 6px 0 !important;
         border-bottom: 1px solid #e5e7eb !important;
         flex-shrink: 0 !important;
     }
+	
+	/* 隱藏按鈕的基本樣式 */
+    .mobile-hide-toggle {
+        display: block !important; /* 確保手機端一定看得到 */
+        width: 100% !important;
+        background: #f1f3f5 !important;
+        color: #343a40 !important;
+        font-size: 12px !important;
+        font-weight: bold !important;
+        padding: 6px 0 !important;
+        margin-bottom: 6px !important;
+        border-radius: 6px !important;
+        border: 1px solid #ced4da !important;
+        text-align: center !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+        flex-shrink: 0 !important;
+    }
+    
+    /* 預設狀態：文字顯示「隱藏選單」 */
+    .mobile-hide-toggle .hide-text { display: inline !important; }
+    .mobile-hide-toggle .show-text { display: none !important; }
+
+    /* 💥 重點動畫：點擊後大盒子（.side-panel）會加上 .minimized，高度秒縮死 */
+    .side-panel.minimized {
+        max-height: 44px !important; /* 縮到極致扁平：只留一條展開按鈕的高度 */
+        background: rgba(255, 255, 255, 0.85) !important; /* 變更透明，減少視覺存在感 */
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    }
+    
+    /* 縮小狀態下：按鈕文字自動切換為「展開選單」 */
+    .side-panel.minimized .mobile-hide-toggle .hide-text { display: none !important; }
+    .side-panel.minimized .mobile-hide-toggle .show-text { display: inline !important; }
 
     /* 3. 點位條列清單：緊緊跟在搜尋框正下方 */
     #data-list {

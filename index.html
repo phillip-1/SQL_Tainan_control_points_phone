@@ -27,6 +27,12 @@
     <div id="map"></div>
 
     <aside class="side-panel">
+	
+		<button class="mobile-hide-toggle" onclick="this.parentElement.classList.toggle('minimized')">
+			<span class="hide-text">隱藏選單 ▴ (解放全螢幕地圖)</span>
+			<span class="show-text">展開選單 ▾</span>
+		</button>
+		
         <div class="panel-header">
             <div class="toolbar">
                 <button class="btn-primary" onclick="UI.openPointDrawer(false)">＋ 新增點位</button>
